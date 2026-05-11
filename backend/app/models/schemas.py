@@ -5,3 +5,9 @@ class UploadResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class AnalyzeResponse(BaseModel):
+    filename: str
+    extracted_text: str
+    feedback: str

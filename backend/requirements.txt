@@ -4,3 +4,5 @@ python-multipart
 aiofiles
 pydantic
 openai
+PyPDF2
+httpx

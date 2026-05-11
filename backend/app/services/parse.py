@@ -1,12 +1,23 @@
 from typing import Optional
-
-# Placeholder parsing utilities. For now we only expose a small helper
-# that would later call a PDF parser (like pdfminer.six or PyPDF2)
+from io import BytesIO
 
 def extract_text_from_bytes(content: bytes) -> Optional[str]:
+    """Extract text from PDF bytes using PyPDF2. Returns concatenated page text or None on failure."""
     try:
-        # Not implementing real PDF parsing here; return a short sample string
-        # to demonstrate the flow.
-        return content[:1024].decode(errors="replace")
+        from PyPDF2 import PdfReader
+
+        reader = PdfReader(BytesIO(content))
+        text_parts = []
+        for page in reader.pages:
+            try:
+                text = page.extract_text() or ""
+                text_parts.append(text)
+            except Exception:
+                continue
+
+        if not text_parts:
+            return None
+
+        return "\n\n".join(text_parts).strip()
     except Exception:
         return None
