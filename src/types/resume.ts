@@ -9,6 +9,12 @@ export type ResumeFile = {
   type: string;
 };
 
+export type ResumeAnalysisResponse = {
+  filename: string;
+  extracted_text: string;
+  feedback: string;
+};
+
 export type AnalysisMetric = {
   title: string;
   value: string;
@@ -16,4 +22,4 @@ export type AnalysisMetric = {
 
 export type ThemeMode = 'light' | 'dark';
 
-export type AnalysisPhase = 'idle' | 'loading' | 'ready';
+export type AnalysisPhase = 'idle' | 'loading' | 'ready' | 'error';

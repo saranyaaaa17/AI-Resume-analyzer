@@ -8,7 +8,7 @@ import type { ResumeFile } from '@/types/resume';
 
 type UploadBoxProps = {
   isAnalyzing: boolean;
-  onFileSelected: (file: ResumeFile | null) => void;
+  onFileSelected: (file: File | null) => void;
 };
 
 function formatFileSize(sizeInBytes: number) {
@@ -39,11 +39,7 @@ export function UploadBox({ isAnalyzing, onFileSelected }: UploadBoxProps) {
       type: file.type,
     });
 
-    onFileSelected({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    });
+    onFileSelected(file);
   };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {

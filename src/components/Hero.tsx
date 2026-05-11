@@ -2,7 +2,13 @@ import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
-export function Hero() {
+type HeroProps = {
+  canAnalyze: boolean;
+  isAnalyzing: boolean;
+  onAnalyzeResume: () => void;
+};
+
+export function Hero({ canAnalyze, isAnalyzing, onAnalyzeResume }: HeroProps) {
   return (
     <section id="top" className="relative overflow-hidden rounded-3xl border border-border bg-card px-6 py-12 shadow-soft sm:px-10 sm:py-16 lg:px-14">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(15,23,42,0.08),_transparent_38%),radial-gradient(circle_at_bottom_left,_rgba(148,163,184,0.2),_transparent_35%)]" />
@@ -17,8 +23,14 @@ export function Hero() {
           Optimize your resume for ATS and recruiter screening using AI-powered analysis.
         </p>
         <div className="mt-8 flex justify-center">
-          <Button size="lg" className="gap-2">
-            Analyze Resume
+          <Button
+            disabled={!canAnalyze || isAnalyzing}
+            onClick={onAnalyzeResume}
+            size="lg"
+            className="gap-2"
+            type="button"
+          >
+            {isAnalyzing ? 'Analyzing...' : 'Analyze Resume'}
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>

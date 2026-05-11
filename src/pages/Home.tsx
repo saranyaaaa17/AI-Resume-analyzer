@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Navbar } from '@/components/Navbar';
 import { Hero } from '@/components/Hero';
@@ -6,13 +6,14 @@ import { UploadBox } from '@/components/UploadBox';
 import { ResultCard } from '@/components/ResultCard';
 import { Separator } from '@/components/ui/separator';
 import { MainLayout } from '@/layouts/MainLayout';
-import type { AnalysisPhase, ResumeFile, ThemeMode } from '@/types/resume';
+import type { AnalysisPhase, ResumeAnalysisResponse, ResumeFile, ThemeMode } from '@/types/resume';
 
-const analysisResults = [
-  { title: 'ATS Score', value: '85%' },
-  { title: 'Missing Skills', value: 'Docker, React Testing Library, CI/CD' },
-  { title: 'Extracted Keywords', value: 'TypeScript, React, API Integration, Agile' },
-  { title: 'Suggestions', value: 'Quantify outcomes, align keywords, sharpen summary' },
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
+
+const emptyResults = [
+  { title: 'File', value: 'No file analyzed yet' },
+  { title: 'Extracted Text', value: 'Upload a PDF and click Analyze Resume to see parsed text here.' },
+  { title: 'AI Feedback', value: 'Feedback will appear after the backend responds.' },
 ];
 
 type HomeProps = {
@@ -36,36 +37,79 @@ function AnalysisSkeleton() {
 
 export function Home({ theme, onThemeToggle }: HomeProps) {
   const [analysisPhase, setAnalysisPhase] = useState<AnalysisPhase>('idle');
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<ResumeAnalysisResponse | null>(null);
   const [selectedFile, setSelectedFile] = useState<ResumeFile | null>(null);
+  const [selectedUpload, setSelectedUpload] = useState<File | null>(null);
 
-  useEffect(() => {
-    if (analysisPhase !== 'loading') {
+  const handleFileSelected = (file: File | null) => {
+    if (!file) {
+      setSelectedUpload(null);
+      setSelectedFile(null);
+      setAnalysisResult(null);
+      setAnalysisError(null);
+      setAnalysisPhase('idle');
       return;
     }
 
-    const timeoutId = window.setTimeout(() => {
-      setAnalysisPhase('ready');
-    }, 1400);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [analysisPhase]);
-
-  const handleFileSelected = (file: ResumeFile | null) => {
-    setSelectedFile(file);
-
-    if (file) {
-      setAnalysisPhase('loading');
-      return;
-    }
-
+    setSelectedUpload(file);
+    setSelectedFile({
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+    setAnalysisResult(null);
+    setAnalysisError(null);
     setAnalysisPhase('idle');
   };
+
+  const handleAnalyzeResume = async () => {
+    if (!selectedUpload) {
+      setAnalysisError('Choose a PDF resume before analyzing.');
+      setAnalysisPhase('error');
+      return;
+    }
+
+    try {
+      setAnalysisPhase('loading');
+      setAnalysisError(null);
+
+      const formData = new FormData();
+      formData.append('file', selectedUpload);
+
+      const response = await fetch(`${API_BASE_URL}/analyze`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorBody = (await response.json().catch(() => null)) as { detail?: string } | null;
+        throw new Error(errorBody?.detail ?? 'Analysis failed. Please try again.');
+      }
+
+      const data = (await response.json()) as ResumeAnalysisResponse;
+      setAnalysisResult(data);
+      setAnalysisPhase('ready');
+    } catch (error) {
+      setAnalysisResult(null);
+      setAnalysisPhase('error');
+      setAnalysisError(error instanceof Error ? error.message : 'Analysis failed. Please try again.');
+    }
+  };
+
+  const analysisResults = analysisResult
+    ? [
+        { title: 'File', value: analysisResult.filename },
+        { title: 'Extracted Text', value: analysisResult.extracted_text.slice(0, 180) || 'No text extracted' },
+        { title: 'AI Feedback', value: analysisResult.feedback },
+      ]
+    : emptyResults;
 
   return (
     <MainLayout>
       <Navbar onThemeToggle={onThemeToggle} theme={theme} />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-        <Hero />
+        <Hero canAnalyze={Boolean(selectedUpload)} isAnalyzing={analysisPhase === 'loading'} onAnalyzeResume={handleAnalyzeResume} />
 
         <section id="how-it-works" className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="animate-fade-up [animation-delay:120ms]">
@@ -104,6 +148,11 @@ export function Home({ theme, onThemeToggle }: HomeProps) {
                 </div>
               </div>
             ) : null}
+            {analysisError ? (
+              <div className="rounded-3xl border border-destructive/30 bg-destructive/10 p-6 text-sm text-destructive shadow-soft">
+                {analysisError}
+              </div>
+            ) : null}
           </div>
         </section>
 
@@ -112,9 +161,9 @@ export function Home({ theme, onThemeToggle }: HomeProps) {
         <section id="results" className="space-y-6">
           <div className="max-w-2xl">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted-foreground">Analysis Results</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Mock ATS insights</h2>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Backend-powered ATS insights</h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              These values are intentionally placeholder content. The layout is ready to receive real resume scoring data later.
+              Click Analyze Resume to send the selected PDF to FastAPI and render the returned extracted text plus feedback.
             </p>
           </div>
 
