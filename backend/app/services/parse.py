@@ -16,7 +16,11 @@ def extract_text_from_bytes(content: bytes) -> Optional[str]:
                 continue
 
         if not text_parts:
-            return None
+            # Fallback: try to decode bytes to provide a best-effort preview
+            try:
+                return content.decode(errors="replace")
+            except Exception:
+                return None
 
         return "\n\n".join(text_parts).strip()
     except Exception:
