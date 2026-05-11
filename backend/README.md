@@ -29,7 +29,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 4. Open Swagger UI: http://127.0.0.1:8000/docs
 
 Notes:
-- OpenAI integration uses `OPENAI_API_KEY` from the environment.
+- OpenAI integration reads `OPENAI_API_KEY` automatically from `backend/.env` at startup.
 - Copy `.env.example` to `.env` and add your key for local runs.
 - Uploaded files are saved to `backend/uploads`.
 

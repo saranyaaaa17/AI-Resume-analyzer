@@ -1,5 +1,11 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
 from .routes.upload import router as upload_router
 from .routes.analyze import router as analyze_router
 from .routes.feedback import router as feedback_router
