@@ -7,3 +7,4 @@ openai
 PyPDF2
 httpx
 pdfminer.six
+pytest
