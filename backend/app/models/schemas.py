@@ -11,3 +11,7 @@ class AnalyzeResponse(BaseModel):
     filename: str
     extracted_text: str
     feedback: str
+
+
+class FeedbackResponse(BaseModel):
+    feedback: str
