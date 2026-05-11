@@ -100,7 +100,7 @@ export function Home({ theme, onThemeToggle }: HomeProps) {
   const analysisResults = analysisResult
     ? [
         { title: 'File', value: analysisResult.filename },
-        { title: 'Extracted Text', value: analysisResult.extracted_text.slice(0, 180) || 'No text extracted' },
+        { title: 'Extracted Text', value: analysisResult.extracted_text || 'No text extracted' },
         { title: 'AI Feedback', value: analysisResult.feedback },
       ]
     : emptyResults;

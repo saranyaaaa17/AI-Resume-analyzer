@@ -30,4 +30,4 @@ async def analyze_resume(file: UploadFile = File(...)) -> Dict[str, str]:
     # Call OpenAI (run in thread to avoid blocking)
     feedback = await asyncio.to_thread(request_feedback_from_openai, text)
 
-    return {"filename": os.path.basename(file.filename), "extracted_text": text[:300], "feedback": feedback}
+    return {"filename": os.path.basename(file.filename), "extracted_text": text, "feedback": feedback}

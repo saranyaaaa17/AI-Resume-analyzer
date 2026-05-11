@@ -9,8 +9,10 @@ export function ResultCard({ title, value }: ResultCardProps) {
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-xl font-semibold leading-8 text-foreground sm:text-2xl">{value}</p>
+      <CardContent className="max-h-72 overflow-auto">
+        <p className="whitespace-pre-wrap break-words text-base font-medium leading-7 text-foreground sm:text-lg">
+          {value}
+        </p>
       </CardContent>
     </Card>
   );

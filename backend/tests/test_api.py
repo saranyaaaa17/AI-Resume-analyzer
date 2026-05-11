@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.services.sample_pdf import build_sample_resume_pdf_bytes
 
 client = TestClient(app)
 
@@ -19,7 +20,7 @@ def test_upload_accepts_pdf(tmp_path, monkeypatch):
 
     monkeypatch.setattr(upload_module, "UPLOAD_DIR", tmp_path.as_posix())
 
-    pdf_bytes = Path("..", "sample-resume.pdf").read_bytes()
+    pdf_bytes = build_sample_resume_pdf_bytes()
     response = client.post(
         "/upload",
         files={"file": ("resume.pdf", pdf_bytes, "application/pdf")},
