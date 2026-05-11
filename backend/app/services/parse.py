@@ -24,4 +24,8 @@ def extract_text_from_bytes(content: bytes) -> Optional[str]:
 
         return "\n\n".join(text_parts).strip()
     except Exception:
-        return None
+        # If PyPDF2 fails entirely, try a best-effort byte decode
+        try:
+            return content.decode(errors="replace")
+        except Exception:
+            return None
