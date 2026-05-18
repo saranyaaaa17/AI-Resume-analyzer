@@ -1,22 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-import { Home } from '@/pages/Home';
+import { PlatformShell } from '@/components/platform/PlatformShell';
+import { usePlatformStore } from '@/store/usePlatformStore';
 import type { ThemeMode } from '@/types/resume';
 
 export default function App() {
-  const [theme, setTheme] = useState<ThemeMode>(() => {
-    if (typeof window === 'undefined') {
-      return 'light';
-    }
-
-    const storedTheme = window.localStorage.getItem('theme');
-
-    if (storedTheme === 'dark' || storedTheme === 'light') {
-      return storedTheme;
-    }
-
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  const theme = usePlatformStore((state) => state.theme);
+  const setTheme = usePlatformStore((state) => state.setTheme);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -24,5 +14,21 @@ export default function App() {
     window.localStorage.setItem('theme', theme);
   }, [theme]);
 
-  return <Home onThemeToggle={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))} theme={theme} />;
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const storedTheme = window.localStorage.getItem('theme');
+    const nextTheme: ThemeMode =
+      storedTheme === 'dark' || storedTheme === 'light'
+        ? storedTheme
+        : window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+
+    setTheme(nextTheme);
+  }, [setTheme]);
+
+  return <PlatformShell theme={theme} onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')} />;
 }

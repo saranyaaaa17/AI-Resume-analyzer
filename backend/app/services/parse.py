@@ -40,6 +40,17 @@ def extract_text_from_bytes(content: bytes) -> Optional[str]:
         # ignore and fall through to final fallback
         pass
 
+    # Try DOCX extraction if the file is a Word document
+    try:
+        from docx import Document
+
+        document = Document(BytesIO(content))
+        lines = [paragraph.text for paragraph in document.paragraphs if paragraph.text.strip()]
+        if lines:
+            return "\n\n".join(lines).strip()
+    except Exception:
+        pass
+
     # Final fallback: decode bytes to provide a best-effort preview
     try:
         return content.decode(errors="replace")

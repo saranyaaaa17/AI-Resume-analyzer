@@ -1,8 +1,10 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
 import aiofiles
 import os
-from typing import Dict
+from sqlalchemy.ext.asyncio import AsyncSession
 from ..models.schemas import UploadResponse
+from ..db.session import get_db_session
+from ..repositories.resume_repository import ResumeRepository
 
 router = APIRouter()
 
@@ -12,7 +14,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @router.post("/upload", response_model=UploadResponse)
-async def upload_resume(file: UploadFile = File(...)) -> Dict[str, str]:
+async def upload_resume(file: UploadFile = File(...), db: AsyncSession = Depends(get_db_session)) -> dict[str, str]:
     # Basic validation
     if not file.filename:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No file uploaded")
@@ -31,5 +33,9 @@ async def upload_resume(file: UploadFile = File(...)) -> Dict[str, str]:
     target_path = os.path.join(UPLOAD_DIR, safe_name)
     async with aiofiles.open(target_path, "wb") as out_file:
         await out_file.write(contents)
+
+    # persist a Resume record
+    repo = ResumeRepository(db)
+    await repo.create_resume(filename=safe_name, original_filename=file.filename, file_type=file.content_type or "application/pdf", storage_key=target_path)
 
     return {"filename": safe_name}

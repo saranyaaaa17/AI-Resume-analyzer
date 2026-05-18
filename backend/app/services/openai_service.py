@@ -1,10 +1,10 @@
 import os
 import re
 
-# Lightweight OpenAI integration starter. If OPENAI_API_KEY is set in env,
+# Lightweight OpenAI integration starter. If OPENAI_API_KEY or GEMINI_API_KEY is set in env,
 # this will attempt to use the OpenAI SDK; otherwise it returns a heuristic reply.
 
-OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY") or os.environ.get("GEMINI_API_KEY")
 
 
 def _generate_heuristic_feedback(resume_text: str) -> str:
@@ -38,6 +38,21 @@ def _generate_heuristic_feedback(resume_text: str) -> str:
     return "\n".join(f"- {suggestion}" for suggestion in suggestions[:4])
 
 
+def summarize_semantic_gaps(resume_text: str) -> dict:
+    normalized_text = resume_text.lower()
+    role_signals = {
+        "cloud": any(keyword in normalized_text for keyword in ("aws", "gcp", "azure", "cloud")),
+        "vector": any(keyword in normalized_text for keyword in ("embedding", "vector", "semantic")),
+        "data": any(keyword in normalized_text for keyword in ("sql", "warehouse", "analytics", "pipeline")),
+        "product": any(keyword in normalized_text for keyword in ("impact", "metric", "growth", "stakeholder")),
+    }
+
+    return {
+        "present": [key for key, value in role_signals.items() if value],
+        "missing": [key for key, value in role_signals.items() if not value],
+    }
+
+
 def request_feedback_from_openai(resume_text: str) -> str:
     """Send a simple prompt and return text feedback.
 
@@ -64,3 +79,22 @@ def request_feedback_from_openai(resume_text: str) -> str:
         return content.strip() if content else _generate_heuristic_feedback(resume_text)
     except Exception as ex:
         return f"OpenAI unavailable, using heuristic feedback instead.\n{_generate_heuristic_feedback(resume_text)}"
+
+
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """Return embeddings for a list of input texts using OpenAI embeddings API.
+
+    If `OPENAI_KEY` is not set, returns an empty list to signal embeddings are unavailable.
+    """
+    if not OPENAI_KEY:
+        return []
+
+    try:
+        from openai import OpenAI
+
+        client = OpenAI(api_key=OPENAI_KEY)
+        response = client.embeddings.create(model="text-embedding-3-small", input=texts)
+        embeddings = [item.embedding for item in response.data]
+        return embeddings
+    except Exception:
+        return []

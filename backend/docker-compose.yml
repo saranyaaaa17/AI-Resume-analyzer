@@ -1,11 +1,49 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: resume_intelligence
+      POSTGRES_USER: resume
+      POSTGRES_PASSWORD: resume
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      - postgres
+      - redis
     ports:
       - "8000:8000"
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      CHROMA_DB_PATH: ${CHROMA_DB_PATH:-/app/chroma_db}
+      DATABASE_URL: postgresql+asyncpg://resume:resume@postgres:5432/resume_intelligence
+      AUTO_CREATE_TABLES: "true"
     volumes:
       - ./uploads:/app/uploads
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A worker.tasks worker --loglevel=info
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: postgresql+asyncpg://resume:resume@postgres:5432/resume_intelligence
+
+volumes:
+  postgres_data:

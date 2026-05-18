@@ -1,7 +1,14 @@
+# Frontend
 node_modules
 dist
+.env
 .DS_Store
 *.log
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+
+# Backend
+venv
+__pycache__
+.env

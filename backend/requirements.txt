@@ -8,3 +8,13 @@ PyPDF2
 httpx
 pdfminer.six
 pytest
+python-docx
+SQLAlchemy[asyncio]
+asyncpg
+aiosqlite
+alembic
+chromadb
+celery
+redis
+PyJWT
+authlib

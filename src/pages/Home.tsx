@@ -6,9 +6,8 @@ import { UploadBox } from '@/components/UploadBox';
 import { ResultCard } from '@/components/ResultCard';
 import { Separator } from '@/components/ui/separator';
 import { MainLayout } from '@/layouts/MainLayout';
+import { API_BASE_URL } from '@/lib/api';
 import type { AnalysisPhase, ResumeAnalysisResponse, ResumeFile, ThemeMode } from '@/types/resume';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
 
 const emptyResults = [
   { title: 'File', value: 'No file analyzed yet' },
